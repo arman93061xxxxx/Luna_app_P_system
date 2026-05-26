@@ -6,7 +6,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import SplashScreen from './src/screens/SplashScreen';
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(false); // Disabled splash
+  const [showSplash, setShowSplash] = useState(true);
   const { initialize } = useAuthStore();
 
   useEffect(() => {

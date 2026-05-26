@@ -107,11 +107,11 @@ const SplashScreen = ({ onFinish }) => {
         <PulseRings size={140} color="rgba(220,20,60,0.2)" />
 
         <Animated.View style={[styles.logoContainer, logoStyle]}>
-          {/* Cinematic letter-by-letter reveal */}
+          {/* तारीख name reveal */}
           <View style={styles.letterRow}>
-            {'LUNA'.split('').map((l, i) => (
-              <LetterReveal key={i} letter={l} delay={i * 120} />
-            ))}
+            <Animated.Text style={styles.appName}>
+              तारीख
+            </Animated.Text>
           </View>
 
           <Animated.Text style={[styles.tagline, taglineStyle]}>
@@ -161,6 +161,15 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: 14,
+    textShadowColor: '#DC143C',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 24,
+  },
+  appName: {
+    fontSize: 58,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 6,
     textShadowColor: '#DC143C',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 24,
