@@ -14,7 +14,10 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors({ origin: '*', credentials: false }));
+app.use(cors({ 
+  origin: ['https://imaginative-nougat-4110b0.netlify.app', 'http://localhost:19006', '*'],
+  credentials: true 
+}));
 app.use(express.json({ limit: '10kb' }));
 
 // Rate limiting

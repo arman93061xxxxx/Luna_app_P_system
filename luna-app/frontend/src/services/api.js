@@ -1,9 +1,7 @@
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from '../utils/storage';
 
-// Production backend URL — update this after deploying to Render
-// For local testing on emulator: http://10.0.2.2:5000/api
-// For local testing on physical device: http://YOUR_PC_IP:5000/api
+// Production backend URL
 const BASE_URL = 'https://luna-api-797x.onrender.com/api';
 
 const api = axios.create({
@@ -14,7 +12,7 @@ const api = axios.create({
 
 // Attach JWT token to every request
 api.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem('luna_token');
+  const token = await storage.getItem('luna_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });

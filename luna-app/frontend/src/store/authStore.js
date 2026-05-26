@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from '../utils/storage';
 import { authAPI } from '../services/api';
 
 export const useAuthStore = create((set, get) => ({
@@ -10,13 +10,13 @@ export const useAuthStore = create((set, get) => ({
 
   initialize: async () => {
     try {
-      const token = await AsyncStorage.getItem('luna_token');
+      const token = await storage.getItem('luna_token');
       if (token) {
         const res = await authAPI.getMe();
         set({ user: res.data.user, token, isAuthenticated: true });
       }
     } catch {
-      await AsyncStorage.removeItem('luna_token');
+      await storage.removeItem('luna_token');
     }
   },
 
@@ -25,7 +25,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await authAPI.login({ email, password });
       const { token, user } = res.data;
-      await AsyncStorage.setItem('luna_token', token);
+      await storage.setItem('luna_token', token);
       set({ user, token, isAuthenticated: true, isLoading: false });
       return { success: true };
     } catch (err) {
@@ -39,7 +39,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await authAPI.signup(data);
       const { token, user } = res.data;
-      await AsyncStorage.setItem('luna_token', token);
+      await storage.setItem('luna_token', token);
       set({ user, token, isAuthenticated: true, isLoading: false });
       return { success: true };
     } catch (err) {
@@ -49,7 +49,7 @@ export const useAuthStore = create((set, get) => ({
   },
 
   logout: async () => {
-    await AsyncStorage.removeItem('luna_token');
+    await storage.removeItem('luna_token');
     set({ user: null, token: null, isAuthenticated: false });
   },
 

@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, Platform, KeyboardAvoidingView, ScrollView } from 'react-native';
-import { Video } from 'expo-av';
 import LoginScreen from './LoginScreen';
 import SignupScreen from './SignupScreen';
 
@@ -32,37 +31,22 @@ const AuthScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Video background — fixed, never resizes with keyboard */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        {Platform.OS === 'web' ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            playsInline
-            onEnded={handleVideoEnd}
-            style={{
-              position: 'absolute',
-              top: 0, left: 0,
-              width: '100%', height: '100%',
-              objectFit: 'cover',
-            }}
-          >
-            <source src="/login.webm" type="video/webm" />
-          </video>
-        ) : (
-          <Video
-            ref={videoRef}
-            source={require('../../assets/login.mp4')}
-            style={StyleSheet.absoluteFill}
-            resizeMode="cover"
-            shouldPlay
-            isLooping={false}
-            isMuted
-            onPlaybackStatusUpdate={(status) => {
-              if (status.didJustFinish || status.error) handleVideoEnd();
-            }}
-            onError={() => handleVideoEnd()}
-          />
-        )}
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          onEnded={handleVideoEnd}
+          style={{
+            position: 'absolute',
+            top: 0, left: 0,
+            width: '100%', height: '100%',
+            objectFit: 'cover',
+          }}
+        >
+          <source src="/login.webm" type="video/webm" />
+          <source src="/login.mp4" type="video/mp4" />
+        </video>
       </View>
 
       {/* Form layer — keyboard aware, scrollable so fields stay visible */}
