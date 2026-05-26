@@ -93,7 +93,6 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 40,
   },
-  },
   centerCircle: {
     width: '100%', maxWidth: 320,
     paddingVertical: 30, paddingHorizontal: 30,
