@@ -87,8 +87,12 @@ const LoginScreen = ({ navigation, videoFinished }) => {
 
 const styles = StyleSheet.create({
   formContainer: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    justifyContent: 'center', alignItems: 'center', paddingTop: 60,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingBottom: 40,
+  },
   },
   centerCircle: {
     width: '100%', maxWidth: 320,

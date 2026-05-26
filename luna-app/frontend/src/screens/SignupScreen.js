@@ -143,8 +143,10 @@ const SignupScreen = ({ navigation, videoFinished }) => {
 
 const styles = StyleSheet.create({
   formContainer: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    justifyContent: 'center', paddingTop: 80,
+    flex: 1,
+    justifyContent: 'center',
+    paddingTop: 80,
+    paddingBottom: 40,
   },
   scroll: { flexGrow: 1, justifyContent: 'center', alignItems: 'center' },
   centerCircle: { width: '100%', maxWidth: 380, paddingHorizontal: 24, alignItems: 'center' },
