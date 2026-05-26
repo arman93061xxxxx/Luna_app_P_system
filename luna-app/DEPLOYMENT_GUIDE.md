@@ -1,150 +1,172 @@
-# Luna App Deployment Guide
+# Luna App — Deployment Guide
 
-## Backend Deployment Options
+---
 
-### Option 1: Render.com (Recommended - Free Tier Available)
+## STEP 1 — Deploy Backend (Render.com — Free)
 
-1. **Create account at render.com**
+### 1.1 Push code to GitHub
+```bash
+cd P_system
+git init
+git add .
+git commit -m "Luna app initial"
+git remote add origin https://github.com/YOUR_USERNAME/luna-app.git
+git push -u origin main
+```
 
-2. **Create new Web Service**
-   - Connect your GitHub repository (or upload code)
-   - Root Directory: `luna-app/backend`
-   - Build Command: `npm install`
-   - Start Command: `npm start`
+### 1.2 Create MongoDB Atlas database (if not done)
+1. Go to https://cloud.mongodb.com
+2. Create free cluster → Get connection string
+3. Looks like: `mongodb+srv://user:pass@cluster.mongodb.net/luna`
 
-3. **Add Environment Variables**
+### 1.3 Deploy backend on Render
+1. Go to https://render.com → Sign up free
+2. New → Web Service → Connect GitHub repo
+3. Settings:
+   - **Root Directory:** `luna-app/backend`
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm start`
+4. Add Environment Variables:
    ```
    NODE_ENV=production
    PORT=5000
-   MONGODB_URI=your_mongodb_connection_string
-   JWT_SECRET=your_secret_key_here_make_it_long_and_random
+   MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/luna
+   JWT_SECRET=make_this_very_long_random_string_32chars
    JWT_EXPIRES_IN=7d
+   GEMINI_API_KEY=your_gemini_key
    ```
-
-4. **Deploy** - Render will give you a URL like: `https://luna-api.onrender.com`
-
-### Option 2: Railway.app (Free Tier)
-
-1. **Create account at railway.app**
-2. **New Project → Deploy from GitHub**
-3. **Add environment variables** (same as above)
-4. **Deploy** - You'll get a URL like: `https://luna-api.up.railway.app`
-
-### Option 3: Heroku (Paid but reliable)
-
-1. **Install Heroku CLI**
-2. **Commands:**
-   ```bash
-   cd luna-app/backend
-   heroku create luna-period-tracker
-   heroku config:set MONGODB_URI=your_connection_string
-   heroku config:set JWT_SECRET=your_secret
-   git push heroku main
-   ```
+5. Click **Deploy** → Wait ~3 mins
+6. Your backend URL: `https://luna-api.onrender.com`
 
 ---
 
-## Frontend - Build Android APK
-
-### Prerequisites
-- Backend must be deployed and accessible online
-- Update API URL in frontend
-
-### Step 1: Update API URL
+## STEP 2 — Update Frontend API URL
 
 Edit `luna-app/frontend/src/services/api.js`:
 ```javascript
-const BASE_URL = 'https://your-backend-url.com/api';  // Replace with your deployed backend URL
+const BASE_URL = 'https://luna-api.onrender.com/api';
 ```
 
-### Step 2: Configure app.json
+---
 
-Make sure `luna-app/frontend/app.json` has proper Android config:
-```json
-{
-  "expo": {
-    "android": {
-      "package": "com.yourname.luna",
-      "versionCode": 1,
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FF1744"
-      }
-    }
-  }
-}
-```
+## STEP 3A — Deploy Web App (Netlify — Free)
 
-### Step 3: Build APK
-
-**Option A: EAS Build (Recommended)**
+### Build the web version
 ```bash
 cd luna-app/frontend
+npx expo export --platform web
+```
+This creates a `dist/` folder.
+
+### Deploy to Netlify
+1. Go to https://netlify.com → Sign up free
+2. Drag and drop the `dist/` folder onto Netlify dashboard
+3. Your app is live at: `https://luna-xxxx.netlify.app`
+
+**Or via CLI:**
+```bash
+npm install -g netlify-cli
+netlify deploy --prod --dir dist
+```
+
+---
+
+## STEP 3B — Build Android APK
+
+### Prerequisites
+```bash
 npm install -g eas-cli
-eas login
-eas build:configure
-eas build -p android --profile preview
+eas login   # create account at expo.dev
 ```
 
-**Option B: Local Build (Requires Android Studio)**
+### Build APK (free, runs in cloud)
 ```bash
 cd luna-app/frontend
-npx expo prebuild
-cd android
-./gradlew assembleRelease
-# APK will be in: android/app/build/outputs/apk/release/
-```
-
-### Step 4: Install APK on Phone
-
-1. Download the APK to your phone
-2. Enable "Install from Unknown Sources" in Settings
-3. Open the APK file and install
-4. The app will connect to your deployed backend automatically
-
----
-
-## Quick Start Commands
-
-### Deploy Backend to Render:
-1. Push code to GitHub
-2. Go to render.com → New Web Service
-3. Connect repo, set root to `luna-app/backend`
-4. Add environment variables
-5. Deploy
-
-### Build APK:
-```bash
-cd luna-app/frontend
-# Update BASE_URL in src/services/api.js first!
 eas build -p android --profile preview
+```
+- Takes 10-15 mins
+- Downloads APK link when done
+- Install on phone: enable "Install from Unknown Sources"
+
+### Build for Play Store (AAB)
+```bash
+eas build -p android --profile production
 ```
 
 ---
 
-## Important Notes
+## STEP 3C — Build iOS IPA
 
-- **MongoDB**: Your MongoDB Atlas database is already online, so it will work from anywhere
-- **Backend URL**: Must be HTTPS for production (Render/Railway provide this automatically)
-- **APK Size**: First build may take 10-15 minutes
-- **Testing**: Test the deployed backend URL in browser first before building APK
-- **Updates**: When you update the app, increment `versionCode` in app.json
+```bash
+eas build -p ios --profile preview
+```
+Requires Apple Developer account ($99/year).
+
+---
+
+## STEP 4 — Verify Everything Works
+
+1. Open your web/app URL
+2. Sign up with a new account
+3. Log a period start date
+4. Check History shows it
+5. Log period end — verify AI insights appear
+6. Check Calendar shows the period days
+
+---
+
+## Environment Variables Reference
+
+### Backend (.env)
+| Variable | Value |
+|---|---|
+| `NODE_ENV` | `production` |
+| `PORT` | `5000` |
+| `MONGODB_URI` | MongoDB Atlas connection string |
+| `JWT_SECRET` | Random 32+ char string |
+| `JWT_EXPIRES_IN` | `7d` |
+| `GEMINI_API_KEY` | From Google AI Studio |
+
+---
+
+## Quick Commands Summary
+
+```bash
+# 1. Deploy backend
+# → Do on Render.com dashboard (no CLI needed)
+
+# 2. Update API URL
+# → Edit frontend/src/services/api.js
+
+# 3. Build web
+cd luna-app/frontend
+npx expo export --platform web
+# → Upload dist/ to Netlify
+
+# 4. Build Android APK
+cd luna-app/frontend
+eas build -p android --profile preview
+```
 
 ---
 
 ## Troubleshooting
 
-**APK can't connect to backend:**
-- Check if backend URL is correct in `api.js`
-- Ensure backend is running (visit the URL in browser)
-- Check if MongoDB connection is working
+**App can't connect to backend:**
+- Visit `https://luna-api.onrender.com/api` in browser — should return JSON
+- Render free tier sleeps after 15 min inactivity — first request takes ~30s to wake up
+- Upgrade to paid ($7/mo) to avoid cold starts
 
 **Build fails:**
-- Run `npm install` in frontend folder
-- Check if all dependencies are installed
-- Try `npx expo doctor` to diagnose issues
+```bash
+npx expo doctor    # diagnose issues
+npm install        # reinstall deps
+```
+
+**MongoDB connection fails:**
+- Whitelist `0.0.0.0/0` in MongoDB Atlas Network Access
+- Check connection string has correct password
 
 **APK won't install:**
-- Enable "Install from Unknown Sources"
-- Check if you have enough storage space
-- Try uninstalling old version first
+- Enable Settings → Security → Install Unknown Apps
+- Uninstall old version first

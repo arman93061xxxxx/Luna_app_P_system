@@ -23,8 +23,22 @@ const refreshPredictions = async (userId) => {
 
 const createLog = async (req, res) => {
   try {
-    console.log('Creating log for user:', req.user._id, 'with data:', req.body);
     const { startDate, endDate, flowIntensity, symptoms, mood, notes } = req.body;
+
+    // Check for duplicate month
+    const d = new Date(startDate);
+    const monthStart = new Date(d.getFullYear(), d.getMonth(), 1);
+    const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59);
+    const existing = await PeriodLog.findOne({
+      userId: req.user._id,
+      startDate: { $gte: monthStart, $lte: monthEnd },
+    });
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: `A period log for ${d.toLocaleString('default', { month: 'long', year: 'numeric' })} already exists.`,
+      });
+    }
 
     const log = await PeriodLog.create({
       userId: req.user._id,
@@ -69,8 +83,23 @@ const updateLog = async (req, res) => {
     Object.assign(log, req.body);
     await log.save();
 
-    await refreshPredictions(req.user._id);
-    res.json({ success: true, log });
+    const predictions = await refreshPredictions(req.user._id);
+    const recentLogs = await PeriodLog.find({ userId: req.user._id }).sort({ startDate: -1 }).limit(12);
+
+    // Generate AI insights when end date is being set
+    let aiInsights = null;
+    if (req.body.endDate) {
+      try {
+        aiInsights = await generateCycleInsights(log, predictions, recentLogs);
+        if (aiInsights?.observation) {
+          log.aiObservation = aiInsights.observation;
+          log.aiSuggestions = aiInsights.suggestions || [];
+          await log.save();
+        }
+      } catch {}
+    }
+
+    res.json({ success: true, log, predictions, aiInsights });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
