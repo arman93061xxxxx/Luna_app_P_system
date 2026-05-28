@@ -23,14 +23,20 @@ export const useAuthStore = create((set, get) => ({
   login: async (email, password) => {
     set({ isLoading: true });
     try {
+      console.log('Attempting login with:', email);
       const res = await authAPI.login({ email, password });
+      console.log('Login response:', res.data);
       const { token, user } = res.data;
       await storage.setItem('luna_token', token);
+      console.log('Token saved to storage');
       set({ user, token, isAuthenticated: true, isLoading: false });
       return { success: true };
     } catch (err) {
+      console.error('Login error:', err);
+      console.error('Error response:', err.response?.data);
+      console.error('Error status:', err.response?.status);
       set({ isLoading: false });
-      return { success: false, message: err.response?.data?.message || 'Login failed' };
+      return { success: false, message: err.response?.data?.message || err.message || 'Login failed' };
     }
   },
 

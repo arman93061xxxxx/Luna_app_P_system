@@ -15,7 +15,7 @@ connectDB();
 
 // Middleware
 app.use(cors({ 
-  origin: ['https://imaginative-nougat-4110b0.netlify.app', 'http://localhost:19006', '*'],
+  origin: true, // Allow all origins for now
   credentials: true 
 }));
 app.use(express.json({ limit: '10kb' }));

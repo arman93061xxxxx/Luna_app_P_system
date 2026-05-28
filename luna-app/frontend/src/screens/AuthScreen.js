@@ -73,7 +73,7 @@ const AuthScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a0008' },
+  container: { flex: 1, backgroundColor: '#000000' },
   keyboardView: { flex: 1 },
   scrollContent: { flexGrow: 1 },
 });

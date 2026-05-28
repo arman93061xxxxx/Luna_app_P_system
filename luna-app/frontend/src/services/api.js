@@ -12,10 +12,32 @@ const api = axios.create({
 
 // Attach JWT token to every request
 api.interceptors.request.use(async (config) => {
+  console.log('API Request:', config.method?.toUpperCase(), config.url);
   const token = await storage.getItem('luna_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+    console.log('Token attached to request');
+  }
   return config;
 });
+
+// Log responses and errors
+api.interceptors.response.use(
+  (response) => {
+    console.log('API Response:', response.status, response.config.url);
+    return response;
+  },
+  (error) => {
+    console.error('API Error:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Auth
 export const authAPI = {
