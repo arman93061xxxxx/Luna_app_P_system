@@ -30,6 +30,7 @@ export const useAuthStore = create((set, get) => ({
       await storage.setItem('luna_token', token);
       console.log('Token saved to storage');
       set({ user, token, isAuthenticated: true, isLoading: false });
+      console.log('Auth state updated - isAuthenticated: true');
       return { success: true };
     } catch (err) {
       console.error('Login error:', err);

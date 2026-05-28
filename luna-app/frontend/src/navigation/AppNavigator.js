@@ -100,7 +100,9 @@ const MainTabs = () => (
 
 // ─── Root navigator ───────────────────────────────────────────────────────────
 const AppNavigator = () => {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
+  
+  console.log('AppNavigator render - isAuthenticated:', isAuthenticated, 'user:', user?.email);
 
   return (
     <NavigationContainer>
