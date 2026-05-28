@@ -30,53 +30,45 @@ const SYMPTOM_ICONS = {
 const formatDate = (d) =>
   new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-// ─── Flow intensity dots with bounce animation ───────────────────────────────
+const FlowDot = ({ active, color, delay }) => {
+  const bounce = useSharedValue(1);
+  useEffect(() => {
+    bounce.value = withDelay(
+      delay,
+      withRepeat(
+        withSequence(
+          withSpring(1.3, { damping: 2, stiffness: 100 }),
+          withSpring(1, { damping: 2, stiffness: 100 })
+        ),
+        -1, false
+      )
+    );
+  }, []);
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: bounce.value }] }));
+  return (
+    <Animated.View
+      style={[
+        styles.flowDot,
+        {
+          backgroundColor: active ? color : 'rgba(255,255,255,0.15)',
+          shadowColor: active ? color : 'transparent',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.8,
+          shadowRadius: 4,
+        },
+        animStyle,
+      ]}
+    />
+  );
+};
+
 const FlowDots = ({ intensity }) => {
   const cfg = flowConfig[intensity] || flowConfig.medium;
-  
   return (
     <View style={styles.flowDots}>
-      {[...Array(5)].map((_, i) => {
-        const BounceD = () => {
-          const bounce = useSharedValue(1);
-          
-          useEffect(() => {
-            bounce.value = withDelay(
-              i * 100,
-              withRepeat(
-                withSequence(
-                  withSpring(1.3, { damping: 2, stiffness: 100 }),
-                  withSpring(1, { damping: 2, stiffness: 100 })
-                ),
-                -1,
-                false
-              )
-            );
-          }, []);
-          
-          const animStyle = useAnimatedStyle(() => ({
-            transform: [{ scale: bounce.value }],
-          }));
-          
-          return (
-            <Animated.View
-              style={[
-                styles.flowDot,
-                {
-                  backgroundColor: i < cfg.dots ? cfg.color : 'rgba(255,255,255,0.15)',
-                  shadowColor: i < cfg.dots ? cfg.color : 'transparent',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.8,
-                  shadowRadius: 4,
-                },
-                animStyle,
-              ]}
-            />
-          );
-        };
-        
-        return <BounceD key={i} />;
-      })}
+      {[0, 1, 2, 3, 4].map((i) => (
+        <FlowDot key={i} active={i < cfg.dots} color={cfg.color} delay={i * 100} />
+      ))}
     </View>
   );
 };

@@ -101,6 +101,12 @@ const styles = StyleSheet.create({
   subtitle: { color: '#5D1020', fontSize: 14, marginBottom: 32, textAlign: 'center', lineHeight: 20, fontWeight: '500' },
   inputGroup: { width: '100%', marginBottom: 24 },
   label: { color: '#7D2035', fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 8 },
+  input: {
+    width: '100%', color: '#2D0010', fontSize: 15,
+    paddingVertical: 12, paddingHorizontal: 16,
+    borderWidth: 1.5, borderColor: 'rgba(180,0,30,0.3)',
+    borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.9)',
+  },
   errorText: { color: '#C2185B', fontSize: 13, marginBottom: 16, textAlign: 'center', fontWeight: '600' },
   successText: { color: '#2E7D32', fontSize: 13, marginBottom: 16, textAlign: 'center', fontWeight: '600' },
   submitButton: { width: '100%', backgroundColor: '#FF1744', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 8 },

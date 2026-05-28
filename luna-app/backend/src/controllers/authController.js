@@ -54,10 +54,25 @@ const getMe = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { name, age, averageCycleLength, notificationPreferences } = req.body;
+    const { name, age, dateOfBirth, profilePhoto, averageCycleLength, notificationPreferences } = req.body;
+    
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (averageCycleLength) updateData.averageCycleLength = averageCycleLength;
+    if (notificationPreferences) updateData.notificationPreferences = notificationPreferences;
+    if (profilePhoto !== undefined) updateData.profilePhoto = profilePhoto;
+    
+    // Handle age/dateOfBirth
+    if (dateOfBirth) {
+      updateData.dateOfBirth = new Date(dateOfBirth);
+      // Age will be calculated automatically
+    } else if (age) {
+      updateData.age = age;
+    }
+    
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { name, age, averageCycleLength, notificationPreferences },
+      updateData,
       { new: true, runValidators: true }
     );
     res.json({ success: true, user });

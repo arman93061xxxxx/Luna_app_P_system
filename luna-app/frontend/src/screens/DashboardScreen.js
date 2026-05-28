@@ -155,14 +155,17 @@ const getTimeOfDay = () => {
 
 const DashboardScreen = ({ navigation }) => {
   const { width: W } = useWindowDimensions();
-  const ringSize = isTablet ? 200 : ms(150);
+  const ringSize = isTablet ? 200 : Math.min(150, W * 0.4);
   const { user } = useAuthStore();
   const { predictions, fetchPredictions, fetchLogs, isLoading } = useCycleStore();
+
+  console.log('DashboardScreen render - width:', W, 'isTablet:', isTablet, 'ringSize:', ringSize);
 
   const headerOpacity = useSharedValue(0);
   const fabScale = useSharedValue(1);
 
   useEffect(() => {
+    console.log('DashboardScreen mounted');
     fetchPredictions();
     fetchLogs({ limit: 5 });
     headerOpacity.value = withTiming(1, { duration: 600 });
@@ -185,6 +188,21 @@ const DashboardScreen = ({ navigation }) => {
   const periodColor = isMissed ? colors.danger : isLate ? colors.warning : colors.crimson;
   const cycleDay = predictions?.currentCycleDay || 1;
   const cycleLen = predictions?.averageCycleLength || 28;
+
+  console.log('Dashboard data:', { cycleDay, cycleLen, periodStatus, user: user?.name });
+
+  // Safety check for mobile
+  if (!W || W < 100) {
+    console.error('Invalid window width:', W);
+    return (
+      <View style={styles.container}>
+        <VideoBackground />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Text style={{ color: '#fff', fontSize: 16 }}>Loading...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

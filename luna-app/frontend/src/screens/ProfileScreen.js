@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, Platform,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, Platform, Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../store/authStore';
 import { authAPI } from '../services/api';
 import InputField from '../components/InputField';
+import DatePicker from '../components/DatePicker';
 import CrimsonButton from '../components/CrimsonButton';
 import VideoBackground from '../components/VideoBackground';
 import { colors } from '../theme/colors';
@@ -29,8 +30,9 @@ const ProfileScreen = ({ navigation }) => {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     name: user?.name || '',
-    age: user?.age?.toString() || '',
+    dateOfBirth: user?.dateOfBirth || null,
     averageCycleLength: user?.averageCycleLength?.toString() || '28',
+    profilePhoto: user?.profilePhoto || null,
   });
   const [notifications, setNotifications] = useState(
     user?.notificationPreferences || { periodReminder: true, ovulationReminder: true, fertileWindowReminder: true }
@@ -45,12 +47,36 @@ const ProfileScreen = ({ navigation }) => {
 
   const set = (key) => (val) => setForm((f) => ({ ...f, [key]: val }));
 
+  const handlePhotoUpload = () => {
+    if (Platform.OS === 'web') {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          if (file.size > 2 * 1024 * 1024) {
+            window.alert('Image must be less than 2MB');
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            set('profilePhoto')(event.target.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
       const res = await authAPI.updateProfile({
         name: form.name,
-        age: form.age ? Number(form.age) : undefined,
+        dateOfBirth: form.dateOfBirth,
+        profilePhoto: form.profilePhoto,
         averageCycleLength: Number(form.averageCycleLength) || 28,
         notificationPreferences: notifications,
       });
@@ -87,6 +113,7 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const initials = user?.name?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) || 'L';
+  const displayPhoto = editing ? form.profilePhoto : user?.profilePhoto;
 
   return (
     <View style={styles.container}>
@@ -96,14 +123,25 @@ const ProfileScreen = ({ navigation }) => {
         <Animated.View style={contentStyle}>
           {/* Avatar section */}
           <View style={styles.avatarSection}>
-            <LinearGradient
-              colors={['#DC143C', '#8B0000', '#4A0010']}
-              style={styles.avatar}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Text style={styles.avatarText}>{initials}</Text>
-            </LinearGradient>
+            <TouchableOpacity onPress={editing ? handlePhotoUpload : null} activeOpacity={editing ? 0.7 : 1}>
+              <LinearGradient
+                colors={['#DC143C', '#8B0000', '#4A0010']}
+                style={styles.avatar}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                {displayPhoto ? (
+                  <Image source={{ uri: displayPhoto }} style={styles.avatarImage} />
+                ) : (
+                  <Text style={styles.avatarText}>{initials}</Text>
+                )}
+                {editing && (
+                  <View style={styles.cameraIcon}>
+                    <Ionicons name="camera" size={14} color="#fff" />
+                  </View>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
             <Text style={styles.userName}>{user?.name}</Text>
             <Text style={styles.userEmail}>{user?.email}</Text>
             <View style={styles.memberBadge}>
@@ -130,7 +168,13 @@ const ProfileScreen = ({ navigation }) => {
             {editing ? (
               <>
                 <InputField label="Name" value={form.name} onChangeText={set('name')} icon="person-outline" />
-                <InputField label="Age" value={form.age} onChangeText={set('age')} keyboardType="numeric" icon="calendar-outline" />
+                <DatePicker 
+                  label="Date of Birth" 
+                  value={form.dateOfBirth} 
+                  onChange={set('dateOfBirth')} 
+                  icon="calendar-outline"
+                  maxDate={new Date()}
+                />
                 <InputField label="Avg Cycle Length (days)" value={form.averageCycleLength} onChangeText={set('averageCycleLength')} keyboardType="numeric" icon="sync-outline" />
                 <CrimsonButton title="Save Changes" onPress={handleSave} loading={saving} style={{ marginTop: 4 }} />
               </>
@@ -138,6 +182,7 @@ const ProfileScreen = ({ navigation }) => {
               <>
                 <InfoRow label="Name" value={user?.name} icon="person-outline" />
                 <InfoRow label="Age" value={user?.age ? `${user.age} years` : undefined} icon="calendar-outline" />
+                <InfoRow label="Date of Birth" value={user?.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : undefined} icon="gift-outline" />
                 <InfoRow label="Avg Cycle" value={`${user?.averageCycleLength || 28} days`} icon="sync-outline" />
               </>
             )}
@@ -183,8 +228,10 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   scroll: { padding: 20, paddingTop: 60, paddingBottom: 110 },
   avatarSection: { alignItems: 'center', marginBottom: 28 },
-  avatar: { width: 84, height: 84, borderRadius: 42, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  avatar: { width: 84, height: 84, borderRadius: 42, alignItems: 'center', justifyContent: 'center', marginBottom: 14, position: 'relative' },
+  avatarImage: { width: 84, height: 84, borderRadius: 42 },
   avatarText: { color: '#fff', fontSize: 30, fontWeight: '800' },
+  cameraIcon: { position: 'absolute', bottom: 0, right: 0, width: 28, height: 28, borderRadius: 14, backgroundColor: colors.crimson, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' },
   userName: { color: '#000000', fontSize: 22, fontWeight: '800', letterSpacing: -0.3 },
   userEmail: { color: '#000000', fontSize: 13, marginTop: 3, fontWeight: '500' },
   memberBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(0,0,0,0.2)', backgroundColor: 'rgba(0,0,0,0.06)' },

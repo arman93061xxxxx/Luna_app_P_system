@@ -103,6 +103,7 @@ const AppNavigator = () => {
   const { isAuthenticated, user } = useAuthStore();
   
   console.log('AppNavigator render - isAuthenticated:', isAuthenticated, 'user:', user?.email);
+  console.log('Window dimensions:', useWindowDimensions());
 
   return (
     <NavigationContainer>

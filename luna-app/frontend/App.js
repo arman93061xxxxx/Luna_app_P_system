@@ -3,10 +3,8 @@ import { View, StyleSheet, StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useAuthStore } from './src/store/authStore';
 import AppNavigator from './src/navigation/AppNavigator';
-import SplashScreen from './src/screens/SplashScreen';
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
   const { initialize } = useAuthStore();
 
   useEffect(() => {
@@ -17,9 +15,6 @@ export default function App() {
     <GestureHandlerRootView style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
       <AppNavigator />
-      {showSplash && (
-        <SplashScreen onFinish={() => setShowSplash(false)} />
-      )}
     </GestureHandlerRootView>
   );
 }

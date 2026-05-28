@@ -60,11 +60,24 @@ const AIOrb = ({ size = 40, isTyping = false }) => {
 };
 
 // ─── Typing dots ──────────────────────────────────────────────────────────────
+const SingleDot = ({ value, index }) => {
+  const style = useAnimatedStyle(() => ({
+    width: 6, height: 6, borderRadius: 3,
+    backgroundColor: colors.crimson,
+    marginHorizontal: 2,
+    transform: [{ translateY: interpolate(value.value, [0, 1], [0, -5]) }],
+    opacity: interpolate(value.value, [0, 1], [0.4, 1]),
+  }));
+  return <Animated.View style={style} />;
+};
+
 const TypingDots = () => {
-  const dots = [0, 1, 2].map(() => useSharedValue(0));
+  const dot0 = useSharedValue(0);
+  const dot1 = useSharedValue(0);
+  const dot2 = useSharedValue(0);
 
   useEffect(() => {
-    dots.forEach((d, i) => {
+    [dot0, dot1, dot2].forEach((d, i) => {
       d.value = withDelay(
         i * 200,
         withRepeat(
@@ -72,8 +85,7 @@ const TypingDots = () => {
             withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }),
             withTiming(0, { duration: 400, easing: Easing.in(Easing.quad) })
           ),
-          -1,
-          false
+          -1, false
         )
       );
     });
@@ -81,18 +93,9 @@ const TypingDots = () => {
 
   return (
     <View style={styles.typingDots}>
-      {dots.map((d, i) => {
-        const style = useAnimatedStyle(() => ({
-          width: 6,
-          height: 6,
-          borderRadius: 3,
-          backgroundColor: colors.crimson,
-          marginHorizontal: 2,
-          transform: [{ translateY: interpolate(d.value, [0, 1], [0, -5]) }],
-          opacity: interpolate(d.value, [0, 1], [0.4, 1]),
-        }));
-        return <Animated.View key={i} style={style} />;
-      })}
+      <SingleDot value={dot0} index={0} />
+      <SingleDot value={dot1} index={1} />
+      <SingleDot value={dot2} index={2} />
     </View>
   );
 };

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Backend Connection Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #1a0008; color: white; }
+        .test { margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #8B0000; color: white; border: none; border-radius: 5px; }
+        button:hover { background: #A52A2A; }
+        pre { background: #000; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        .success { color: #90EE90; }
+        .error { color: #FFD700; }
+    </style>
+</head>
+<body>
+    <h1>Luna Backend Connection Test</h1>
+    
+    <div class="test">
+        <h2>1. Test Health Endpoint</h2>
+        <button onclick="testHealth()">Test /health</button>
+        <pre id="health-result">Click button to test...</pre>
+    </div>
+
+    <div class="test">
+        <h2>2. Test Login Endpoint</h2>
+        <input type="email" id="email" placeholder="Email" value="test@test.com" style="padding: 8px; margin: 5px; width: 200px;">
+        <input type="password" id="password" placeholder="Password" value="test123" style="padding: 8px; margin: 5px; width: 200px;">
+        <button onclick="testLogin()">Test Login</button>
+        <pre id="login-result">Enter credentials and click button...</pre>
+    </div>
+
+    <div class="test">
+        <h2>3. Test CORS</h2>
+        <button onclick="testCORS()">Test CORS Headers</button>
+        <pre id="cors-result">Click button to test...</pre>
+    </div>
+
+    <div class="test">
+        <h2>4. Test localStorage</h2>
+        <button onclick="testStorage()">Test localStorage</button>
+        <pre id="storage-result">Click button to test...</pre>
+    </div>
+
+    <script>
+        const API_URL = 'https://luna-api-797x.onrender.com';
+
+        async function testHealth() {
+            const result = document.getElementById('health-result');
+            result.textContent = 'Testing...';
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                result.innerHTML = `<span class="success">✓ Success!</span>\nStatus: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ Error!</span>\n${error.message}`;
+            }
+        }
+
+        async function testLogin() {
+            const result = document.getElementById('login-result');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            result.textContent = 'Testing login...';
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    result.innerHTML = `<span class="success">✓ Login Success!</span>\nStatus: ${response.status}\nToken: ${data.token ? data.token.substring(0, 20) + '...' : 'none'}\nUser: ${JSON.stringify(data.user, null, 2)}`;
+                    
+                    // Test localStorage
+                    localStorage.setItem('luna_token', data.token);
+                    result.innerHTML += '\n\n<span class="success">✓ Token saved to localStorage</span>';
+                } else {
+                    result.innerHTML = `<span class="error">✗ Login Failed!</span>\nStatus: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ Error!</span>\n${error.message}\n\nThis usually means:\n- CORS is blocking the request\n- Backend is not responding\n- Network issue`;
+            }
+        }
+
+        async function testCORS() {
+            const result = document.getElementById('cors-result');
+            result.textContent = 'Testing CORS...';
+            try {
+                const response = await fetch(`${API_URL}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const corsHeaders = {
+                    'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
+                    'access-control-allow-credentials': response.headers.get('access-control-allow-credentials'),
+                    'access-control-allow-methods': response.headers.get('access-control-allow-methods'),
+                };
+                
+                result.innerHTML = `<span class="success">✓ CORS Headers:</span>\n${JSON.stringify(corsHeaders, null, 2)}`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ CORS Error!</span>\n${error.message}`;
+            }
+        }
+
+        function testStorage() {
+            const result = document.getElementById('storage-result');
+            try {
+                // Test write
+                localStorage.setItem('test_key', 'test_value');
+                
+                // Test read
+                const value = localStorage.getItem('test_key');
+                
+                // Test remove
+                localStorage.removeItem('test_key');
+                
+                // Check for existing token
+                const token = localStorage.getItem('luna_token');
+                
+                result.innerHTML = `<span class="success">✓ localStorage is working!</span>\n\nWrite: OK\nRead: ${value}\nRemove: OK\n\nExisting luna_token: ${token ? token.substring(0, 20) + '...' : 'none'}`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ localStorage Error!</span>\n${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

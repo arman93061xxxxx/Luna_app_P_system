@@ -26,10 +26,8 @@ const InputField = ({ label, error, secureTextEntry, icon, style, ...props }) =>
   };
 
   const wrapperStyle = useAnimatedStyle(() => ({
-    borderColor: error
-      ? 'rgba(231,76,60,0.7)'
-      : `rgba(220,20,60,${interpolate(focusAnim.value, [0, 1], [0.18, 0.6])})`,
-    backgroundColor: `rgba(220,20,60,${interpolate(focusAnim.value, [0, 1], [0.04, 0.1])})`,
+    borderColor: error ? 'rgba(231,76,60,0.7)' : 'rgba(220,20,60,0.35)',
+    backgroundColor: 'rgba(220,20,60,0.06)',
   }));
 
   const glowStyle = useAnimatedStyle(() => ({
