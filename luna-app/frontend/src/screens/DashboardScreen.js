@@ -166,20 +166,37 @@ const DashboardScreen = ({ navigation }) => {
 
   useEffect(() => {
     console.log('DashboardScreen mounted');
-    fetchPredictions();
-    fetchLogs({ limit: 5 });
-    headerOpacity.value = withTiming(1, { duration: 600 });
-    fabScale.value = withRepeat(
-      withSequence(
-        withTiming(1.05, { duration: 900, easing: Easing.inOut(Easing.sine) }),
-        withTiming(1, { duration: 900, easing: Easing.inOut(Easing.sine) })
-      ),
-      -1, false
-    );
+    try {
+      fetchPredictions();
+      fetchLogs({ limit: 5 });
+      headerOpacity.value = withTiming(1, { duration: 600 });
+      fabScale.value = withRepeat(
+        withSequence(
+          withTiming(1.05, { duration: 900, easing: Easing.inOut(Easing.sine) }),
+          withTiming(1, { duration: 900, easing: Easing.inOut(Easing.sine) })
+        ),
+        -1, false
+      );
+    } catch (error) {
+      console.error('Dashboard init error:', error);
+    }
   }, []);
 
-  const headerStyle = useAnimatedStyle(() => ({ opacity: headerOpacity.value }));
-  const fabStyle = useAnimatedStyle(() => ({ transform: [{ scale: fabScale.value }] }));
+  const headerStyle = useAnimatedStyle(() => {
+    try {
+      return { opacity: headerOpacity.value };
+    } catch {
+      return { opacity: 1 };
+    }
+  });
+  
+  const fabStyle = useAnimatedStyle(() => {
+    try {
+      return { transform: [{ scale: fabScale.value }] };
+    } catch {
+      return { transform: [{ scale: 1 }] };
+    }
+  });
 
   const daysLeft = daysUntil(predictions?.nextPeriodDate);
   const isLate = predictions?.lateStatus;
@@ -200,6 +217,94 @@ const DashboardScreen = ({ navigation }) => {
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
           <Text style={{ color: '#fff', fontSize: 16 }}>Loading...</Text>
         </View>
+      </View>
+    );
+  }
+
+  // Simplified mobile view
+  if (W < 600) {
+    return (
+      <View style={styles.container}>
+        <VideoBackground />
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => { fetchPredictions(); fetchLogs(); }} tintColor={colors.crimson} />}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Simple header without animation */}
+          <View style={[styles.header, { opacity: 1 }]}>
+            <View>
+              <Text style={styles.greeting}>Good {getTimeOfDay()}</Text>
+              <Text style={styles.name}>{user?.name?.split(' ')[0] || 'Luna'}</Text>
+            </View>
+            <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+              <LinearGradient colors={[colors.bloodRed, colors.deepMaroon]} style={styles.avatar}>
+                <Text style={styles.avatarText}>{user?.name?.[0]?.toUpperCase() || 'L'}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+
+          {/* Simplified hero card */}
+          <LinearGradient colors={['#722F37', '#5C2530']} style={styles.heroCard}>
+            <View style={styles.heroInner}>
+              <View style={{ alignItems: 'center', justifyContent: 'center', width: 120, height: 120 }}>
+                <Text style={{ color: '#FFFFFF', fontSize: 32, fontWeight: '800' }}>{cycleDay}</Text>
+                <Text style={{ color: '#FFB3C1', fontSize: 11 }}>of {cycleLen}</Text>
+              </View>
+              <View style={styles.heroInfo}>
+                <Text style={styles.heroSectionLabel}>
+                  {isLate ? 'Period Late' : isMissed ? 'Missed' : daysLeft > 0 ? 'Next Period' : 'Expected'}
+                </Text>
+                <Text style={[styles.heroCountdown, { color: periodColor }]}>{periodStatus}</Text>
+                {!isLate && !isMissed && daysLeft !== null && (
+                  <Text style={styles.heroUnit}>days</Text>
+                )}
+                <Text style={styles.heroDate}>{formatDate(predictions?.nextPeriodDate)}</Text>
+              </View>
+            </View>
+          </LinearGradient>
+
+          {/* Stats */}
+          <View style={styles.statsRow}>
+            <View style={{ flex: 1 }}>
+              <LinearGradient colors={['#722F37', '#5C2530']} style={styles.statCard}>
+                <View style={[styles.statIcon, { backgroundColor: '#FF6B9D22' }]}>
+                  <Ionicons name="leaf-outline" size={18} color="#FF6B9D" />
+                </View>
+                <Text style={[styles.statValue, { color: '#FF6B9D' }]}>{formatDate(predictions?.fertileWindow?.start) ?? '—'}</Text>
+                <Text style={styles.statLabel}>Fertile Start</Text>
+              </LinearGradient>
+            </View>
+            <View style={{ width: 10 }} />
+            <View style={{ flex: 1 }}>
+              <LinearGradient colors={['#722F37', '#5C2530']} style={styles.statCard}>
+                <View style={[styles.statIcon, { backgroundColor: colors.fertile + '22' }]}>
+                  <Ionicons name="heart-outline" size={18} color={colors.fertile} />
+                </View>
+                <Text style={[styles.statValue, { color: colors.fertile }]}>{formatDate(predictions?.fertileWindow?.end) ?? '—'}</Text>
+                <Text style={styles.statLabel}>Fertile End</Text>
+              </LinearGradient>
+            </View>
+          </View>
+
+          {/* Actions */}
+          <View style={styles.actionsRow}>
+            <View style={{ flex: 1 }}>
+              <TouchableOpacity onPress={() => navigation.navigate('AddLog')} activeOpacity={0.85}>
+                <LinearGradient colors={['#FF2D55', '#DC143C', '#8B0000']} style={styles.fab}>
+                  <Ionicons name="add" size={24} color="#fff" />
+                  <Text style={styles.fabText}>Log Period</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.chatBtn} onPress={() => navigation.navigate('AIChat')} activeOpacity={0.8}>
+              <LinearGradient colors={['rgba(220,20,60,0.15)', 'rgba(100,0,15,0.1)']} style={styles.chatBtnInner}>
+                <Ionicons name="sparkles" size={18} color={colors.crimson} />
+                <Text style={styles.chatBtnText}>Ask Luna AI</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </View>
     );
   }
